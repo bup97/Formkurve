@@ -276,7 +276,7 @@ var FK = (function () {
 // 1) Trage unten die Adresse deiner Formkurve-App ein (Tippen aufs Widget öffnet sie).
 // 2) Skript einmal in Scriptable starten: API-Key und Athleten-ID eingeben.
 // 3) Widget auf dem Homescreen hinzufügen → Scriptable → dieses Skript wählen.
-const APP_URL = "https://DEIN-NAME.github.io/formkurve/";
+const APP_URL = "https://bup97.github.io/Formkurve/";
 const SLEEP_GOAL = 8; // Stunden
 const KC = "formkurve_api_key", KA = "formkurve_athlete";
 
