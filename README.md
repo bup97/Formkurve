@@ -5,5 +5,5 @@ Persönliches Trainings-Dashboard: Trainingsbelastung (CTL/ATL/Form), eigener Sc
 **Wichtig:** Den API-Key nie ins Repo schreiben. Er wird nur in der App auf deinem Gerät gespeichert.
 
 ## Dateien
-- `index.html`, `manifest.webmanifest`, `icon-180.png`, `icon-512.png`: die Web-App
+- `index.html`, `manifest.webmanifest`, `icon-b-180.png`, `icon-b-512.png`: die Web-App
 - `formkurve-widget.js`: Homescreen-Widget für die iPhone-App Scriptable
