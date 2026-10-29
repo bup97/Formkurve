@@ -3,8 +3,8 @@
   "short_name": "Formkurve",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#ECEFF4",
-  "theme_color": "#2A50D4",
+  "background_color": "#080B18",
+  "theme_color": "#080B18",
   "lang": "de",
   "icons": [
     {

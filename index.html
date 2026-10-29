@@ -49,8 +49,8 @@ b,.big,.huge,.g-num,.a-load{font-variant-numeric:tabular-nums}
 
 /* Kopf */
 .top{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;padding-top:6px}
-.brand{font-family:var(--f-display);font-weight:700;font-size:15px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);display:flex;align-items:center;gap:6px}
-.brand svg{width:22px;height:14px}
+.brand{font-family:var(--f-display);font-weight:700;font-size:15px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink);display:flex;align-items:center;gap:6px}
+.brand svg{width:20px;height:20px}
 #date{font-family:var(--f-display);font-weight:600;font-size:28px;line-height:1.05;margin:2px 0 0;text-wrap:balance}
 .sub{display:flex;flex-wrap:wrap;gap:4px 10px;color:var(--muted);font-size:13px}
 .actions{display:flex;gap:8px;flex:none}
@@ -190,7 +190,7 @@ details p{max-width:65ch;margin:8px 0}
 <div class="app">
   <header class="top">
     <div>
-      <div class="brand"><svg viewBox="0 0 22 14" aria-hidden="true"><path d="M1 11 C5 11 6 3 10 3 S15 9 21 2" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>Formkurve</div>
+      <div class="brand"><svg viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="bm" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#3A5BFF"/><stop offset="1" stop-color="#4FF0C4"/></linearGradient></defs><path d="M6.3 17.7 A8.8 8.8 0 1 1 20.8 11.2" fill="none" stroke="url(#bm)" stroke-width="3.2" stroke-linecap="round"/><circle cx="12" cy="12" r="2.2" fill="currentColor"/></svg>Formkurve</div>
       <p id="date"></p>
       <div class="sub"><span id="stamp"></span><span id="race"></span></div>
     </div>
