@@ -233,7 +233,12 @@ var FK = (function () {
     var w = (W || []).filter(function (x) { return x && x.id; }).sort(function (a, b) { return a.id < b.id ? -1 : 1; });
     var t = function (k, d) { return trend(series(w, DEF[k], d || 180, now), now); };
     var ss = (athlete && athlete.sportSettings) || [];
-    var sport = function (kind) { return ss.filter(function (s) { return (s.types || []).some(function (x) { return SPORT(x) === kind; }); })[0] || {}; };
+    // Sporteinstellung wählen: zuerst die mit dem Haupttyp (Ride/Run/Swim), sonst eine passende Variante
+    var MAIN = { bike: 'Ride', run: 'Run', swim: 'Swim' };
+    var sport = function (kind) {
+      var exact = ss.filter(function (s) { return (s.types || []).indexOf(MAIN[kind]) >= 0; })[0];
+      return exact || ss.filter(function (s) { return (s.types || []).some(function (x) { return SPORT(x) === kind; }); })[0] || {};
+    };
     var bike = sport('bike'), run = sport('run'), swim = sport('swim');
     var weightT = t('weight');
     var weight = weightT ? weightT.v : num(athlete && (athlete.icu_weight || athlete.weight));
@@ -251,7 +256,7 @@ var FK = (function () {
         { key: 'wkg', label: 'FTP pro kg', unit: 'W/kg', value: ftp && weight ? ftp / weight : null, d: 2, cls: wkgClass(ftp && weight ? ftp / weight : null, sex) },
         { key: 'runpace', label: 'Laufschwelle', unit: 'min/km', text: pace(num(run.threshold_pace)) },
         { key: 'css', label: 'Schwimmschwelle', unit: 'min/100 m', text: swimPace(num(swim.threshold_pace)) },
-        { key: 'lthr', label: 'Schwellenpuls Lauf', unit: 'bpm', value: num(run.lthr) || num(bike.lthr) },
+        { key: 'lthr', label: 'Schwellenpuls Lauf', unit: 'bpm', value: num(run.lthr) },
         { key: 'maxhr', label: 'Maximalpuls', unit: 'bpm', value: maxHr },
         { key: 'weight', label: 'Gewicht', unit: 'kg', t: weightT, value: weight, d: 1 },
         { key: 'fat', label: 'Körperfett', unit: '%', t: t('bodyFat'), d: 1 }
