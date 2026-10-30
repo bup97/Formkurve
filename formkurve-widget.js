@@ -274,7 +274,35 @@ var FK = (function () {
     };
   }
 
-  return { analyze: analyze, metrics: metrics, normActivity: normActivity, sport: SPORT, iso: iso, addDays: addDays, clamp: clamp, num: num };
+  // ---------- Strain, Schlafbedarf, 7-Tage-Verlauf ----------
+  // Strain 0–21: logarithmisch aus der Trainingsbelastung (intervals.icu Load) eines Tages
+  function strainOf(load) { return load > 0 ? Math.round(210 * (1 - Math.exp(-load / 120))) / 10 : 0; }
+  var TARGETS = [[0, 8], [8, 12], [11, 15], [14, 18]];
+  function daily(W, A, opts) {
+    opts = opts || {};
+    var now = opts.now || new Date(), goal = opts.sleepGoal || 8, today = iso(now);
+    var byDay = {};
+    (A || []).forEach(function (a) { byDay[a.date] = (byDay[a.date] || 0) + (a.load || 0); });
+    var days = [];
+    for (var i = 6; i >= 0; i--) {
+      var d = addDays(now, -i), id = iso(d), r = analyze(W, A, { now: d, sleepGoal: goal });
+      days.push({ id: id, load: byDay[id] || 0, strain: strainOf(byDay[id] || 0), recovery: r.readiness, tone: r.rec ? r.rec.tone : 'neutral' });
+    }
+    var cur = analyze(W, A, opts);
+    var lvl = cur.rec ? cur.rec.level : 2;
+    var todayActs = (A || []).filter(function (a) { return a.date === today; })
+      .map(function (a) { return Object.assign({ strain: strainOf(a.load) }, a); });
+    // Schlafbedarf: Ziel + Ausgleich für die Belastung + Teil der Schlafschuld der letzten 3 Nächte
+    var nights = (W || []).filter(function (x) { return x.id <= today && num(x.sleepSecs) != null; })
+      .sort(function (a, b) { return a.id < b.id ? -1 : 1; }).slice(-3);
+    var debt = nights.reduce(function (s, x) { return s + Math.max(0, goal - x.sleepSecs / 3600); }, 0);
+    var st = strainOf(byDay[today] || 0);
+    var need = { base: goal, strain: Math.round(st / 21 * 0.75 * 12) / 12, debt: Math.round(Math.min(1, debt * 0.25) * 12) / 12 };
+    need.total = need.base + need.strain + need.debt;
+    return { days: days, strainToday: st, loadToday: byDay[today] || 0, target: TARGETS[lvl], todayActs: todayActs, sleepNeed: need };
+  }
+
+  return { analyze: analyze, metrics: metrics, daily: daily, strain: strainOf, normActivity: normActivity, sport: SPORT, iso: iso, addDays: addDays, clamp: clamp, num: num };
 })();
 
 // ===== Formkurve · iPhone-Widget für Scriptable =====
@@ -312,72 +340,85 @@ async function loadData() {
   const now = new Date(), q = "?oldest=" + FK.iso(FK.addDays(now, -60)) + "&newest=" + FK.iso(now);
   const W = await api("/wellness" + q);
   const A = (await api("/activities" + q)).map(FK.normActivity);
-  return FK.analyze(W, A, { sleepGoal: SLEEP_GOAL });
+  const r = FK.analyze(W, A, { sleepGoal: SLEEP_GOAL });
+  r.day = FK.daily(W, A, { sleepGoal: SLEEP_GOAL });
+  return r;
 }
 
 const C = {
-  bg: Color.dynamic(new Color("#FFFFFF"), new Color("#131924")),
-  ink: Color.dynamic(new Color("#121826"), new Color("#E8ECF3")),
-  muted: Color.dynamic(new Color("#5A6476"), new Color("#93A0B4")),
-  accent: Color.dynamic(new Color("#2A50D4"), new Color("#87A3FF")),
-  good: Color.dynamic(new Color("#16804F"), new Color("#4BC98B")),
-  warn: Color.dynamic(new Color("#AE6A08"), new Color("#E8AD47")),
-  bad: Color.dynamic(new Color("#BF3434"), new Color("#F27373")),
-  neutral: Color.dynamic(new Color("#5A6476"), new Color("#93A0B4"))
+  bg: new Color("#06080C"), ink: new Color("#F1F4F8"), muted: new Color("#8590A0"), track: new Color("#161C25"),
+  good: new Color("#2EE59D"), warn: new Color("#FFC94A"), bad: new Color("#FF5C64"), neutral: new Color("#8590A0"),
+  strain: new Color("#4F8BFF"), sleep: new Color("#9C8CFF"), mint: new Color("#4FF0C4")
 };
-const sgn = v => v == null ? "–" : (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(Math.round(v));
 
 function text(stack, s, size, color, weight) {
   const t = stack.addText(String(s));
-  t.font = weight === "bold" ? Font.boldRoundedSystemFont(size) : weight === "semi" ? Font.semiboldSystemFont(size) : Font.systemFont(size);
+  t.font = weight === "bold" ? Font.heavyRoundedSystemFont(size) : weight === "semi" ? Font.semiboldSystemFont(size) : Font.systemFont(size);
   t.textColor = color; t.lineLimit = 1; t.minimumScaleFactor = 0.6;
   return t;
 }
-function metric(stack, label, value, color) {
-  const s = stack.addStack(); s.layoutVertically();
-  text(s, label.toUpperCase(), 9, C.muted, "semi");
-  text(s, value, 17, color || C.ink, "bold");
+
+// Ring als Bild: Hintergrundkreis, Fortschrittsbogen, Zahl in der Mitte
+function ringImage(frac, color, label, size) {
+  const S = size * 3, ctx = new DrawContext();
+  ctx.size = new Size(S, S); ctx.opaque = false; ctx.respectScreenScale = true;
+  const lw = S * 0.1, R = S / 2 - lw / 2 - 2, c = S / 2;
+  const arc = (from, to, col) => {
+    const p = new Path(), steps = Math.max(2, Math.round((to - from) * 120));
+    for (let i = 0; i <= steps; i++) {
+      const a = -Math.PI / 2 + 2 * Math.PI * (from + (to - from) * i / steps);
+      const pt = new Point(c + R * Math.cos(a), c + R * Math.sin(a));
+      if (i === 0) p.move(pt); else p.addLine(pt);
+    }
+    ctx.addPath(p); ctx.setStrokeColor(col); ctx.setLineWidth(lw); ctx.strokePath();
+  };
+  arc(0, 1, C.track);
+  const f = Math.max(0, Math.min(1, frac || 0));
+  if (f > 0.005) arc(0, f, color);
+  ctx.setFont(Font.heavyRoundedSystemFont(S * (String(label).length > 3 ? 0.2 : 0.24)));
+  ctx.setTextColor(C.ink); ctx.setTextAlignedCenter();
+  const h = S * 0.3; ctx.drawTextInRect(String(label), new Rect(0, c - h / 2, S, h));
+  return ctx.getImage();
 }
+function ringCol(stack, frac, color, label, name, size) {
+  const s = stack.addStack(); s.layoutVertically(); s.centerAlignContent();
+  const img = s.addImage(ringImage(frac, color, label, size)); img.imageSize = new Size(size, size);
+  s.addSpacer(3);
+  const n = s.addStack(); n.addSpacer(); text(n, name.toUpperCase(), 9, C.muted, "semi"); n.addSpacer();
+}
+const de1 = v => (Math.round(v * 10) / 10).toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
 function build(r, family) {
   const w = new ListWidget();
   w.backgroundColor = C.bg; w.url = APP_URL;
-  w.setPadding(14, 14, 14, 14);
+  w.setPadding(12, 12, 12, 12);
   w.refreshAfterDate = new Date(Date.now() + 30 * 60 * 1000);
   const rec = r.rec || { title: "Keine Daten", tone: "neutral", zone: "–" };
-  const tone = C[rec.tone] || C.neutral;
-
-  const head = w.addStack(); head.centerAlignContent();
-  text(head, "FORMKURVE", 10, C.accent, "semi"); head.addSpacer();
-  if (family !== "small" && r.formZone) text(head, "Form " + r.formZone.label, 10, C[r.formZone.tone], "semi");
-  w.addSpacer(6);
+  const rc = C[rec.tone] || C.neutral, d = r.day;
+  const rv = r.readiness, sl = r.sleep ? r.sleep.total : null;
 
   if (family === "small") {
-    text(w, r.readiness == null ? "–" : r.readiness, 40, tone, "bold");
-    text(w, rec.title, 14, C.ink, "semi");
-    w.addSpacer();
-    text(w, "Form " + sgn(r.tsb) + " · " + rec.zone, 11, C.muted);
+    const h = w.addStack(); h.addSpacer(); ringCol(h, (rv || 0) / 100, rc, rv == null ? "–" : rv + "%", "Erholung", 78); h.addSpacer();
+    w.addSpacer(4);
+    const b = w.addStack(); b.addSpacer();
+    text(b, "Strain " + de1(d.strainToday), 11, C.strain, "semi"); text(b, "  ·  ", 11, C.muted); text(b, "Schlaf " + (sl == null ? "–" : sl), 11, C.sleep, "semi");
+    b.addSpacer();
     return w;
   }
   const row = w.addStack(); row.centerAlignContent();
-  const left = row.addStack(); left.layoutVertically();
-  text(left, r.readiness == null ? "–" : r.readiness, 44, tone, "bold");
-  row.addSpacer(12);
-  const right = row.addStack(); right.layoutVertically();
-  text(right, rec.title, 18, C.ink, "bold");
-  text(right, "Intensität " + rec.zone + (rec.hours ? " · Erholung ~" + rec.hours + " h" : ""), 12, C.muted);
-  w.addSpacer();
-  const m = w.addStack();
-  metric(m, "Form", sgn(r.tsb), r.formZone ? C[r.formZone.tone] : null); m.addSpacer();
-  metric(m, "Schlaf", r.sleep ? r.sleep.total : "–"); m.addSpacer();
-  metric(m, "HRV", r.hrv == null ? "–" : Math.round(r.hrv)); m.addSpacer();
-  metric(m, "Ruhepuls", r.rhr == null ? "–" : Math.round(r.rhr));
+  ringCol(row, (sl || 0) / 100, C.sleep, sl == null ? "–" : sl + "%", "Schlaf", 62); row.addSpacer();
+  ringCol(row, (rv || 0) / 100, rc, rv == null ? "–" : rv + "%", "Erholung", 72); row.addSpacer();
+  ringCol(row, d.strainToday / 21, C.strain, de1(d.strainToday), "Strain", 62);
+  w.addSpacer(8);
+  const t = w.addStack(); t.centerAlignContent();
+  text(t, rec.title.toUpperCase(), 13, rc, "bold"); t.addSpacer();
+  text(t, "Ziel " + d.target[0] + "–" + d.target[1] + " · " + rec.zone, 11, C.muted, "semi");
   return w;
 }
 
 function message(msg) {
   const w = new ListWidget(); w.backgroundColor = C.bg; w.url = APP_URL;
-  text(w, "FORMKURVE", 10, C.accent, "semi"); w.addSpacer(6);
+  text(w, "FORMKURVE", 10, C.mint, "semi"); w.addSpacer(6);
   const t = w.addText(msg); t.font = Font.systemFont(13); t.textColor = C.ink;
   return w;
 }
