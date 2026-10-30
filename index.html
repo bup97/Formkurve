@@ -805,7 +805,8 @@ if (typeof module !== 'undefined') module.exports = FK;
   function renderMetrics(data) {
     var k = FK.metrics(data.W, data.A, data.ath, { age: cfg.age, sex: cfg.sex });
     var list = function (arr) { var h = arr.map(metricRow).join(''); return h ? '<ul class="metrics">' + h + '</ul>' : '<p class="empty">Keine Werte von Garmin übertragen.</p>'; };
-    $('#perf').innerHTML = '<div class="sec-head"><h2>Leistungswerte</h2><span class="muted small">Verlauf 6 Monate</span></div>' + list(k.performance);
+    $('#perf').innerHTML = '<div class="sec-head"><h2>Leistungswerte</h2><span class="muted small">Verlauf 6 Monate</span></div>' + list(k.performance) +
+      '<p class="muted small" style="margin:10px 0 0">FTP, Schwellen und Maximalpuls kommen aus intervals.icu → Settings → Sport Settings. Dort ändern, dann stimmen auch Trainingsbelastung und Zonen.</p>';
     $('#health').innerHTML = '<div class="sec-head"><h2>Gesundheitswerte</h2><span class="muted small">Verlauf 3 Monate</span></div>' + list(k.health);
   }
 
