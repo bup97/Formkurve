@@ -274,7 +274,7 @@ details p{margin:8px 0;max-width:65ch}
     <div class="grid2"><div class="field"><label for="f-ath">Athleten-ID</label><input id="f-ath" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="0"></div>
     <div class="field"><label for="f-key">API-Key</label><input id="f-key" type="password" autocomplete="off" autocapitalize="off" spellcheck="false"></div></div>
     <h3>KI-Coach</h3>
-    <div class="field"><label for="f-ai">Claude-API-Key</label><input id="f-ai" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="sk-ant-…"><span class="hint">Von console.anthropic.com. Ohne Key gibt es die regelbasierte Empfehlung.</span></div>
+    <div class="field"><label for="f-ai">KI-API-Key (Gemini oder Claude)</label><input id="f-ai" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="AIza… oder sk-ant-…"><span class="hint">Kostenlos: Gemini-Key von aistudio.google.com → „Get API key“. Die App erkennt den Anbieter automatisch. Ohne Key gibt es die regelbasierte Empfehlung.</span></div>
     <h3>Du</h3>
     <div class="grid2">
       <div class="field"><label for="f-goal">Schlafziel (h)</label><input id="f-goal" inputmode="decimal"></div>
@@ -605,7 +605,7 @@ var INFO = {
   erholung: { t: 'Erholung', s: 'Wie viel dein Körper heute verträgt.', w: 'Ein Wert von 0 bis 100 %, der aus vier Bausteinen entsteht: <b>HRV</b> (30 %), <b>Schlaf</b> (30 %), <b>Form</b> aus deiner Trainingsbelastung (25 %) und <b>Ruhepuls</b> (15 %). HRV und Ruhepuls werden immer mit <i>deinem eigenen</i> 28-Tage-Schnitt verglichen, nicht mit anderen Menschen.', g: '<span class="c-good">Grün ab 67 %</span>: bereit für harte Einheiten. <span class="c-warn">Gelb 34–66 %</span>: normales oder lockeres Training. <span class="c-bad">Rot unter 34 %</span>: Ruhetag oder sehr locker.', d: 'Warnsignale senken die Empfehlung zusätzlich, auch wenn die Prozentzahl noch okay aussieht: HRV mehr als 15 % unter Schnitt, Ruhepuls 5 Schläge darüber, unter 5,5 h Schlaf oder Form unter −30.' },
   schlaf: { t: 'Schlafleistung', s: 'Wie erholsam die letzte Nacht war.', w: 'Ein Wert von 0 bis 100 % aus drei Teilen: <b>Dauer</b> im Vergleich zu deinem Schlafziel (45 Punkte), <b>Qualität</b> laut Garmin (20 Punkte) und <b>nächtliche Erholung</b>, also wie HRV und Ruhepuls in der Nacht gegenüber deinem Schnitt lagen (35 Punkte).', g: 'Ab 85 %: voll erholsam. 70–84 %: ausreichend. Unter 70 %: zu wenig, das kostet Leistung.', d: 'Der Garmin-Schlafscore steht zum Vergleich daneben. Er bewertet anders, deshalb weichen die Zahlen oft etwas ab.' },
   strain: { t: 'Strain', s: 'Wie stark du dich heute belastet hast.', w: 'Eine Skala von 0 bis 21, berechnet aus der Trainingsbelastung (Load) aller Einheiten des Tages, auch MyWhoosh. Die Skala ist bewusst logarithmisch: Von 0 auf 10 kommst du schnell, jeder Punkt über 18 kostet sehr viel.', g: 'Grobe Orientierung: <b>unter 8</b> sehr locker, <b>8–13</b> moderat, <b>14–17</b> anstrengend, <b>18+</b> sehr hart (lange Koppeleinheit, Wettkampf). Eine Stunde Z2 auf dem Rad liegt bei etwa 9–11.', d: 'Der <b>äußere blaue Bogen</b> zeigt dein Ziel für heute, abhängig von der Erholung. Landest du im Bogen, hast du genau richtig trainiert.' },
-  coach: { t: 'Coach', w: 'Der Coach fasst alles zu einer Ansage für heute zusammen: Erholung, Schlaf, Belastung der letzten Wochen, geplante Einheiten aus deinem intervals.icu-Kalender und dein Ziel Roth.', g: 'Ohne Claude-Key arbeitet er <b>regelbasiert</b>: feste Grenzwerte, nachvollziehbar, aber ohne Blick auf deinen Plan im Ganzen. Mit Key ist es der <b>KI-Coach</b>: Er sieht alle Werte gleichzeitig und kann Einheiten konkret verschieben oder anpassen.', d: 'Über das Fragefeld kannst du nachhaken, z. B. „Soll ich die Intervalle auf morgen schieben?“. Der Coach ersetzt kein Körpergefühl: Fühlst du dich krank, ist Pause immer richtig.' },
+  coach: { t: 'Coach', w: 'Der Coach fasst alles zu einer Ansage für heute zusammen: Erholung, Schlaf, Belastung der letzten Wochen, geplante Einheiten aus deinem intervals.icu-Kalender und dein Ziel Roth.', g: 'Ohne KI-Key arbeitet er <b>regelbasiert</b>: feste Grenzwerte, nachvollziehbar, aber ohne Blick auf deinen Plan im Ganzen. Mit Key ist es der <b>KI-Coach</b>: Er sieht alle Werte gleichzeitig und kann Einheiten konkret verschieben oder anpassen.', d: 'Über das Fragefeld kannst du nachhaken, z. B. „Soll ich die Intervalle auf morgen schieben?“. Der Coach ersetzt kein Körpergefühl: Fühlst du dich krank, ist Pause immer richtig.' },
   tag: { t: 'Dein Tag', w: 'Alle Einheiten von heute: erledigte mit farbigem Sport-Symbol, geplante aus dem intervals.icu-Kalender gestrichelt.', g: 'Bei jeder Einheit steht ihr Strain, bei geplanten der geschätzte Strain aus der geplanten Belastung.', d: 'Liegt eine geplante Einheit deutlich über deinem Strain-Ziel, sagt dir der Coach, wie du sie anpassen kannst.' },
   log: { t: 'Erholung heute', w: 'Hier hakst du ab, was du aktiv für die Erholung getan hast: Reboots, Mobility, Massage, Sauna, Kältebad oder Powernap.', g: 'Die Einträge landen als Notiz in deinen intervals.icu-Wellnessdaten und sind damit auf allen Geräten da.', d: 'In die Erholungs-Prozente fließen sie nicht direkt ein, weil es dafür keine verlässliche Formel gibt. Der KI-Coach sieht sie aber und erkennt, was dir hilft.' },
   woche: { t: 'Letzte 7 Tage', w: 'Für jeden Tag oben die Erholung (Zahl und Balken) und darunter in Blau der Strain.', g: 'Ein gesundes Muster: Nach Tagen mit hohem Strain folgen Tage mit niedrigerem Strain, und die Erholung erholt sich wieder.', d: 'Bleibt die Erholung mehrere Tage gelb oder rot, obwohl du weiter viel Strain sammelst, ist es Zeit für einen Entlastungstag.' },
@@ -808,7 +808,38 @@ var INFO = {
   var SYS = 'Du bist ein erfahrener Triathlon-Coach für einen ambitionierten Altersklassen-Athleten, der sich auf eine Langdistanz vorbereitet. ' +
     'Du bekommst seine aktuellen Daten als JSON (Belastung nach intervals.icu, Garmin-Werte, eigene Erholungs- und Strain-Berechnung, geplante Einheiten, Erholungsmaßnahmen). ' +
     'Sprich ihn mit du an, auf Deutsch, kurz und konkret wie ein Coach am Morgen. Begründe mit den 1–2 wichtigsten Werten. Keine Diagnosen; nur bei deutlich auffälligen Werten über mehrere Tage zum Arztbesuch raten.';
+  // Anbieter am Key erkennen: Claude-Keys beginnen mit sk-ant, alles andere wird als Gemini-Key behandelt
+  function provider() { return !cfg.aiKey ? null : /^sk-ant/.test(cfg.aiKey) ? 'claude' : 'gemini'; }
+  var GEMINI_MODELS = ['gemini-3.8-flash', 'gemini-3.6-flash', 'gemini-3.5-flash-lite', 'gemini-2.5-flash'];
+  async function gemini(messages, max) {
+    var models = cfg.geminiModel ? [cfg.geminiModel].concat(GEMINI_MODELS.filter(function (m) { return m !== cfg.geminiModel; })) : GEMINI_MODELS;
+    var body = JSON.stringify({
+      systemInstruction: { parts: [{ text: SYS }] },
+      contents: messages.map(function (m) { return { role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }] }; }),
+      generationConfig: { maxOutputTokens: Math.max(2048, (max || 700) * 3), temperature: 0.6 }
+    });
+    for (var i = 0; i < models.length; i++) {
+      var r = await fetch('https://generativelanguage.googleapis.com/v1beta/models/' + models[i] + ':generateContent', {
+        method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': cfg.aiKey }, body: body
+      });
+      if (r.status === 404) continue; // Modell nicht (mehr) verfügbar: nächstes probieren
+      if (r.status === 400 || r.status === 401 || r.status === 403) {
+        var e = await r.json().catch(function () { return {}; }), m = (e.error && e.error.message) || '';
+        if (/api key|API_KEY|permission/i.test(m) || r.status !== 400) throw new Error('Der Gemini-API-Key wurde abgelehnt. Prüfe ihn in den Einstellungen.');
+        if (/model/i.test(m)) continue;
+        throw new Error('Gemini hat die Anfrage abgelehnt: ' + m);
+      }
+      if (r.status === 429) throw new Error('Das kostenlose Gemini-Kontingent ist für heute aufgebraucht. Morgen geht es wieder.');
+      if (!r.ok) throw new Error('Der KI-Coach ist gerade nicht erreichbar (Fehler ' + r.status + ').');
+      var j = await r.json();
+      if (cfg.geminiModel !== models[i]) { cfg.geminiModel = models[i]; store.set('cfg', cfg); }
+      var c = (j.candidates || [])[0];
+      return c && c.content ? (c.content.parts || []).filter(function (p) { return !p.thought; }).map(function (p) { return p.text || ''; }).join('') : '';
+    }
+    throw new Error('Kein passendes Gemini-Modell gefunden.');
+  }
   async function claude(messages, max) {
+    if (provider() === 'gemini') return gemini(messages, max);
     var r = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'content-type': 'application/json', 'x-api-key': cfg.aiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
@@ -836,7 +867,7 @@ var INFO = {
   function setCoachLoading(on) { var el = $('#coach-src'); if (el && on) el.innerHTML = '<i></i>KI-Coach denkt nach …'; }
   async function ask(q, ctx) {
     var box = $('#answer'); box.hidden = false;
-    if (!cfg.aiKey) { box.textContent = 'Für Rückfragen brauchst du einen Claude-API-Key in den Einstellungen.'; return; }
+    if (!cfg.aiKey) { box.textContent = 'Für Rückfragen brauchst du einen KI-Key (Gemini oder Claude) in den Einstellungen.'; return; }
     box.textContent = 'Coach denkt nach …';
     try { box.textContent = await claude([{ role: 'user', content: 'Daten:\n' + JSON.stringify(ctx) + '\n\nFrage des Athleten: ' + q + '\n\nAntworte in 2–5 Sätzen ohne Überschriften.' }], 500); }
     catch (e) { box.textContent = e.message; }
@@ -960,13 +991,13 @@ var INFO = {
     // Coach
     var cached = store.get('coach', null), ai = cfg.aiKey && cached && cached.out && cached.at && cached.at.slice(0, 10) === r.today ? cached.out : null;
     var c = ai || ruleCoach(r, d, plan);
-    var coach = '<article class="card coach" aria-label="Coach"><div class="head"><h2 class="coach-src" id="coach-src"><i></i>' + (ai ? 'KI-Coach' : 'Coach') + ib('coach') + '</h2>' +
+    var coach = '<article class="card coach" aria-label="Coach"><div class="head"><h2 class="coach-src" id="coach-src"><i></i>' + (ai ? 'KI-Coach · ' + (provider() === 'gemini' ? 'Gemini' : 'Claude') : 'Coach') + ib('coach') + '</h2>' +
       '<span class="chip t-' + rt + '">Erholung ' + (r.readiness == null ? '–' : r.readiness + ' %') + '</span></div>' +
       '<h1 class="title c-' + rt + '">' + esc(c.headline || rec.title) + '</h1><p>' + esc(c.text || '') + '</p>' +
       '<div class="chips"><span class="chip">Intensität ' + esc(rec.zone) + '</span><span class="chip">Strain-Ziel ' + d.target[0] + '–' + d.target[1] + '</span>' + (rec.hours ? '<span class="chip">Voll erholt in ca. ' + rec.hours + ' h</span>' : '') + '</div>' +
       '<div class="today"><span class="lbl">Heute</span><span>' + esc(c.today || rec.todo) + '</span>' + (c.tomorrow ? '<span class="lbl">Morgen</span><span>' + esc(c.tomorrow) + '</span>' : '') + '</div>' +
       '<form class="ask" id="ask"><input id="q" placeholder="Frag den Coach …" autocomplete="off"><button type="submit">Fragen</button></form><div class="answer" id="answer" hidden></div>' +
-      (cfg.aiKey ? '' : '<p class="muted small" style="margin:10px 0 0">Regelbasiert. Mit einem Claude-API-Key in den Einstellungen wird daraus der KI-Coach.</p>') + '</article>';
+      (cfg.aiKey ? '' : '<p class="muted small" style="margin:10px 0 0">Regelbasiert. Mit einem kostenlosen Gemini-Key (oder Claude-Key) in den Einstellungen wird daraus der KI-Coach.</p>') + '</article>';
 
     var todayLog = logFor(r.today);
     var logCard = '<section class="card"><div class="head"><h2>Erholung heute' + ib('log') + '</h2><span class="muted small">' + (todayLog.length ? todayLog.length + ' erledigt' : 'Antippen zum Abhaken') + '</span></div><div class="log">' +
@@ -1128,7 +1159,7 @@ var INFO = {
   $('#btn-clear').addEventListener('click', function () { cfg.key = ''; cfg.aiKey = ''; store.set('cfg', cfg); store.del('cache'); store.del('coach'); openSettings(false); msg('Verbindungen getrennt. Du siehst wieder Beispieldaten.'); refresh(); });
   $('#settings').addEventListener('submit', function (e) {
     e.preventDefault();
-    cfg.key = $('#f-key').value.trim(); cfg.athlete = $('#f-ath').value.trim() || '0'; cfg.aiKey = $('#f-ai').value.trim();
+    cfg.key = $('#f-key').value.trim(); cfg.athlete = $('#f-ath').value.trim() || '0'; var nk = $('#f-ai').value.trim(); if (nk !== cfg.aiKey) cfg.geminiModel = null; cfg.aiKey = nk;
     cfg.sleepGoal = Math.min(10, Math.max(6, parseFloat(String($('#f-goal').value).replace(',', '.')) || 8));
     cfg.wake = $('#f-wake').value || '06:00'; cfg.age = parseInt($('#f-age').value, 10) || null; cfg.sex = $('#f-sex').value || null;
     store.set('cfg', cfg); store.del('coach'); openSettings(false); refresh();
